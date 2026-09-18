@@ -1,28 +1,69 @@
 <?php
 require_once 'auth.php';
 include 'koneksi.php';
+//menggabungkan tabel mahasiswa dan program studi
 $query_mahasiswa = "SELECT m.nim, m.nama_mahasiswa, ps.nama_prodi, ps.akreditasi FROM mahasiswa m LEFT JOIN program_studi ps ON m.kode_prodi = ps.kode_prodi ORDER BY m.nim ASC";
 $result_mahasiswa = mysqli_query($koneksi, $query_mahasiswa);
 $query_prodi = "SELECT * FROM program_studi ORDER BY kode_prodi ASC";
 $result_prodi = mysqli_query($koneksi, $query_prodi);
+//menghitung total statistik data
 $jumlah_mahasiswa = mysqli_num_rows($result_mahasiswa);
 $jumlah_prodi = mysqli_num_rows($result_prodi);
 ?>
 <!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SIAKAD | Manajemen Data Akademik</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="assets/style.css" rel="stylesheet"></head>
 <body><div class="app-shell">
-<aside class="sidebar"><div class="brand"><div class="brand-icon">🎓</div><div>SIAKAD<small>Manajemen Akademik</small></div></div><nav class="nav-menu"><a class="nav-link-custom active" href="index.php">🏠 <span>Dashboard</span></a><a class="nav-link-custom" href="#mahasiswa-tab-pane">👨‍🎓 <span>Mahasiswa</span></a><a class="nav-link-custom" href="#prodi-tab-pane">📚 <span>Program Studi</span></a></nav><div class="sidebar-footer">Sistem Informasi Akademik<br><strong>Junior Web Programming</strong></div></aside>
-<main class="main"><header class="topbar"><div><div class="page-title">Dashboard Akademik</div><div class="page-subtitle">Kelola data mahasiswa dan program studi</div></div><div class="user-chip"><div class="avatar">A</div><span><?php echo htmlspecialchars($_SESSION['user']['nama'] ?? 'Administrator'); ?></span><a class="logout-link" href="logout.php" title="Keluar">↪</a></div></header>
-<section class="content"><div class="welcome"><h1>Selamat Datang 👋</h1><p>Kelola data akademik dengan cepat dan terorganisir.</p></div>
-<div class="stats"><div class="stat-card"><div><div class="stat-label">Total Mahasiswa</div><div class="stat-value"><?= $jumlah_mahasiswa ?></div></div><div class="stat-icon">👨‍🎓</div></div><div class="stat-card"><div><div class="stat-label">Program Studi</div><div class="stat-value"><?= $jumlah_prodi ?></div></div><div class="stat-icon">📚</div></div></div>
-<div class="panel"><div class="panel-head"><div><div class="panel-title">Data Akademik</div><div class="panel-desc">Pilih data yang ingin dikelola</div></div></div>
-<ul class="nav nav-tabs px-3 pt-2" id="myTab" role="tablist"><li class="nav-item"><button class="nav-link active" id="mahasiswa-tab" data-bs-toggle="tab" data-bs-target="#mahasiswa-tab-pane" type="button">Data Mahasiswa</button></li><li class="nav-item"><button class="nav-link" id="prodi-tab" data-bs-toggle="tab" data-bs-target="#prodi-tab-pane" type="button">Program Studi</button></li></ul>
-<div class="tab-content" id="myTabContent"><div class="tab-pane fade show active" id="mahasiswa-tab-pane"><div class="toolbar"><div class="search"><span class="search-icon">🔎</span><input id="searchMahasiswa" type="text" class="form-control" placeholder="Cari NIM atau nama..."></div><a href="tambah.php" class="btn btn-primary">＋ Tambah Mahasiswa</a></div><div class="table-wrap"><table class="table" id="tableMahasiswa"><thead><tr><th>NIM</th><th>Nama Mahasiswa</th><th>Program Studi</th><th>Aksi</th></tr></thead><tbody><?php while ($row = mysqli_fetch_assoc($result_mahasiswa)) : ?><tr><td><strong><?= htmlspecialchars($row['nim']) ?></strong></td><td><?= htmlspecialchars($row['nama_mahasiswa']) ?></td><td><?= $row['nama_prodi'] ? htmlspecialchars($row['nama_prodi']) : '<span class="text-muted">-</span>' ?></td><td><div class="action-group"><a href="edit.php?nim=<?= urlencode($row['nim']) ?>" class="btn btn-warning btn-sm">Edit</a><a href="hapus.php?nim=<?= urlencode($row['nim']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus data ini?')">Hapus</a></div></td></tr><?php endwhile; ?></tbody></table></div></div>
-<div class="tab-pane fade" id="prodi-tab-pane"><div class="toolbar"><div class="search"><span class="search-icon">🔎</span><input id="searchProdi" type="text" class="form-control" placeholder="Cari program studi..."></div><a href="tambah_prodi.php" class="btn btn-success">＋ Tambah Program Studi</a></div><div class="table-wrap"><table class="table" id="tableProdi"><thead><tr><th>Kode</th><th>Nama Program Studi</th><th>Akreditasi</th><th>Aksi</th></tr></thead><tbody><?php while ($row = mysqli_fetch_assoc($result_prodi)) : ?><tr><td><span class="badge-soft"><?= htmlspecialchars($row['kode_prodi']) ?></span></td><td><?= htmlspecialchars($row['nama_prodi']) ?></td><td><?= htmlspecialchars($row['akreditasi']) ?></td><td><div class="action-group"><a href="edit_prodi.php?kode=<?= urlencode($row['kode_prodi']) ?>" class="btn btn-warning btn-sm">Edit</a><a href="hapus_prodi.php?kode=<?= urlencode($row['kode_prodi']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus program studi ini?')">Hapus</a></div></td></tr><?php endwhile; ?></tbody></table></div></div></div></div></section></main></div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>function setupSearch(inputId,tableId){const input=document.getElementById(inputId);const 
-rows=document.querySelectorAll('#'+tableId+' tbody tr');input.addEventListener('input',()=>
-{const q=input.value.toLowerCase();rows.forEach(row=>row.style.display=row.innerText.toLowerCase().
-includes(q)?'':'none')})}setupSearch('searchMahasiswa','tableMahasiswa');setupSearch
-('searchProdi','tableProdi');document.addEventListener('DOMContentLoaded',()=>
-{const hash=window.location.hash;if(hash){const tab=document.querySelector(`button[data-bs-target="$
-{hash}"]`);if(tab)new bootstrap.Tab(tab).show();}});</script></body></html><?php mysqli_close($koneksi); ?>
+<aside class="sidebar"><div class="brand"><div class="brand-icon">🎓</div><div>SIAKAD<small>Manajemen Akademik</small></div>
+</div><nav class="nav-menu"><a class="nav-link-custom active" href="index.php">🏠 <span>Dashboard</span></a>
+<a class="nav-link-custom" href="#mahasiswa-tab-pane">👨‍🎓 <span>Mahasiswa</span></a><a class="nav-link-custom" 
+href="#prodi-tab-pane">📚 <span>Program Studi</span></a></nav><div class="sidebar-footer">Sistem Informasi Akademik<br>
+<strong>Junior Web Programming</strong></div></aside>
+<main class="main"><header class="topbar"><div><div class="page-title">Dashboard Akademik</div><div class="page-subtitle">
+    Kelola data mahasiswa dan program studi</div></div><div class="user-chip"><div class="avatar">A</div><span>
+        <?php echo htmlspecialchars($_SESSION['user']['nama'] ?? 'Administrator'); ?></span><a class="logout-link"
+         href="logout.php" title="Keluar">↪</a></div></header>
+<section class="content"><div class="welcome"><h1>Selamat Datang 👋</h1><p>Kelola data akademik dengan cepat dan terorganisir.
+
+</p></div>
+<div class="stats"><div class="stat-card"><div><div class="stat-label">Total Mahasiswa</div>
+<div class="stat-value"><?= $jumlah_mahasiswa ?></div></div><div class="stat-icon">👨‍🎓</div></div>
+<div class="stat-card"><div><div class="stat-label">Program Studi</div><div class="stat-value"><?= $jumlah_prodi ?>
+</div></div><div class="stat-icon">📚</div></div></div>
+<div class="panel"><div class="panel-head"><div><div class="panel-title">Data Akademik</div><div class="panel-desc">
+    Pilih data yang ingin dikelola</div></div></div>
+<ul class="nav nav-tabs px-3 pt-2" id="myTab" role="tablist"><li class="nav-item"><button class="nav-link active" id=
+"mahasiswa-tab" data-bs-toggle="tab" data-bs-target="#mahasiswa-tab-pane" type="button">Data Mahasiswa</button>
+</li><li class="nav-item"><button class="nav-link" id="prodi-tab" data-bs-toggle="tab" data-bs-target="#prodi-tab-pane" 
+type="button">Program Studi</button></li></ul>
+<div class="tab-content" id="myTabContent"><div class="tab-pane fade show active" id="mahasiswa-tab-pane">
+    <div class="toolbar"><div class="search"><span class="search-icon">🔎</span><input id="searchMahasiswa" 
+    type="text" class="form-control" placeholder="Cari NIM atau nama..."></div><a href="tambah.php" class=
+    "btn btn-primary">＋ Tambah Mahasiswa</a></div><div class="table-wrap"><table class="table" id="tableMahasiswa">
+        <thead><tr><th>NIM</th><th>Nama Mahasiswa</th><th>Program Studi</th><th>Aksi</th></tr></thead><tbody>
+            <?php while ($row = mysqli_fetch_assoc($result_mahasiswa)) : ?><tr><td><strong><?=
+             htmlspecialchars($row['nim']) ?></strong></td><td><?= htmlspecialchars($row['nama_mahasiswa']) 
+             ?></td><td><?= $row['nama_prodi'] ? htmlspecialchars($row['nama_prodi']) : '<span class="text-muted">
+             -</span>' ?></td><td><div class="action-group"><a href="edit.php?nim=<?= urlencode($row['nim'])
+              ?>" class="btn btn-warning btn-sm">Edit</a><a href="hapus.php?nim=<?= urlencode($row['nim']) ?>
+              " class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus data ini?')"
+              >Hapus</a></div></td></tr><?php endwhile; ?></tbody></table></div></div>
+<div class="tab-pane fade" id="prodi-tab-pane"><div class="toolbar"><div class="search"><span class="search-icon">
+    🔎</span><input id="searchProdi" type="text" class="form-control" placeholder="Cari program studi..."></div>
+    <a href="tambah_prodi.php" class="btn btn-success">＋ Tambah Program Studi</a></div><div class="table-wrap">
+        <table class="table" id="tableProdi"><thead><tr><th>Kode</th><th>Nama Program Studi</th><th>Akreditasi</th>
+        <th>Aksi</th></tr></thead><tbody><?php while ($row = mysqli_fetch_assoc($result_prodi)) : ?><tr><td>
+            <span class="badge-soft"><?= htmlspecialchars($row['kode_prodi']) ?></span></td><td><?= 
+                htmlspecialchars($row['nama_prodi']) ?></td><td><?= htmlspecialchars($row['akreditasi']) ?>
+                </td><td><div class="action-group"><a href="edit_prodi.php?kode=<?= urlencode($row['kode_prodi']) ?>
+                " class="btn btn-warning btn-sm">Edit</a><a href="hapus_prodi.php?kode=<?= urlencode($row['kode_prodi']) 
+                ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus program studi ini?')"
+                >Hapus</a></div></td></tr><?php endwhile; ?></tbody></table></div></div></div></div></section></main>
+            </div>
+//pemanggilan library external bootsrap via CDN
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script>
+function setupSearch(inputId,tableId){const input=document.getElementById(inputId);const rows=
+document.querySelectorAll('#'+tableId+' tbody tr');input.addEventListener('input',()=>{const q=input.value.toLowerCase();
+rows.forEach(row=>row.style.display=row.innerText.toLowerCase().includes(q)?'':'none')})}setupSearch
+('searchMahasiswa','tableMahasiswa');setupSearch('searchProdi','tableProdi');document.addEventListener
+('DOMContentLoaded',()=>{const hash=window.location.hash;if(hash){const tab=document.querySelector
+(`button[data-bs-target="${hash}"]`);if(tab)new bootstrap.Tab(tab).show();}});</script></body></html>
+<?php mysqli_close($koneksi); ?>
